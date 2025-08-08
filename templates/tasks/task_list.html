@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}任务列表 - TaskFlowPro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="fas fa-list-check me-2"></i>任务列表
+        </h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>创建任务
+        </a>
+    </div>
+</div>
+
+<!-- 筛选表单 -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-filter me-2"></i>筛选任务
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="{{ filter_form.status.id_for_label }}" class="form-label">状态</label>
+                {{ filter_form.status }}
+            </div>
+            <div class="col-md-3">
+                <label for="{{ filter_form.priority.id_for_label }}" class="form-label">优先级</label>
+                {{ filter_form.priority }}
+            </div>
+            <div class="col-md-3">
+                <label for="{{ filter_form.project.id_for_label }}" class="form-label">项目</label>
+                {{ filter_form.project }}
+            </div>
+            <div class="col-md-3">
+                <label for="{{ filter_form.assignee.id_for_label }}" class="form-label">负责人</label>
+                {{ filter_form.assignee }}
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>筛选
+                </button>
+                <a href="{% url 'tasks:task_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>清除
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if tasks %}
+<div class="row" id="task-container">
+    {% for task in tasks %}
+    <div class="col-md-6 col-lg-4 mb-4 task-item" data-task-id="{{ task.pk }}">
+        <div class="card h-100 {% if task.is_overdue %}border-danger{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-truncate">{{ task.title }}</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'tasks:task_detail' task.pk %}">
+                            <i class="fas fa-eye me-2"></i>查看详情
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'tasks:task_update' task.pk %}">
+                            <i class="fas fa-edit me-2"></i>编辑任务
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger btn-delete" href="{% url 'tasks:task_delete' task.pk %}">
+                            <i class="fas fa-trash me-2"></i>删除任务
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted small">
+                    {{ task.description|truncatewords:15|default:"暂无描述" }}
+                </p>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge task-status-{{ task.status }}">
+                            {{ task.get_status_display }}
+                        </span>
+                        <span class="badge priority-{{ task.priority }}">
+                            {{ task.get_priority_display }}
+                        </span>
+                    </div>
+                    
+                    <!-- 状态更新按钮 -->
+                    <div class="btn-group btn-group-sm w-100">
+                        <button type="button" class="btn btn-outline-secondary status-btn" 
+                                data-task-id="{{ task.pk }}" data-status="pending">
+                            待处理
+                        </button>
+                        <button type="button" class="btn btn-outline-primary status-btn" 
+                                data-task-id="{{ task.pk }}" data-status="in_progress">
+                            进行中
+                        </button>
+                        <button type="button" class="btn btn-outline-success status-btn" 
+                                data-task-id="{{ task.pk }}" data-status="completed">
+                            已完成
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row text-center small">
+                    <div class="col-6">
+                        <div class="text-muted">项目</div>
+                        <div class="fw-bold">{{ task.project.name }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted">负责人</div>
+                        <div class="fw-bold">{{ task.assignee.username }}</div>
+                    </div>
+                </div>
+                
+                {% if task.due_date %}
+                <div class="mt-2 text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        截止: {{ task.due_date|date:"m-d H:i" }}
+                        {% if task.is_overdue %}
+                        <span class="text-danger">(已逾期)</span>
+                        {% endif %}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-user me-1"></i>{{ task.creator.username }}
+                    </small>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>{{ task.created_at|date:"m-d" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 拖拽排序提示 -->
+{% if user.profile.is_admin %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    管理员可以拖拽任务卡片来调整排序
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-list-check fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">暂无任务</h4>
+    <p class="text-muted">开始创建您的第一个任务吧！</p>
+    <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>创建任务
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 状态更新
+    $('.status-btn').on('click', function() {
+        var taskId = $(this).data('task-id');
+        var status = $(this).data('status');
+        var btn = $(this);
+        
+        $.ajax({
+            url: '/tasks/' + taskId + '/status/',
+            method: 'POST',
+            data: {
+                'status': status,
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.message, 'success');
+                    // 更新状态显示
+                    var statusBadge = btn.closest('.card-body').find('.badge').first();
+                    statusBadge.text(response.status);
+                    statusBadge.removeClass().addClass('badge task-status-' + status);
+                } else {
+                    showMessage(response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('更新失败，请重试', 'danger');
+            }
+        });
+    });
+    
+    {% if user.profile.is_admin %}
+    // 拖拽排序
+    $('#task-container').sortable({
+        handle: '.card-header',
+        update: function(event, ui) {
+            var taskIds = [];
+            $('.task-item').each(function() {
+                taskIds.push($(this).data('task-id'));
+            });
+            
+            $.ajax({
+                url: '/tasks/order/',
+                method: 'POST',
+                data: {
+                    'task_ids[]': taskIds,
+                    'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showMessage(response.message, 'success');
+                    } else {
+                        showMessage(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showMessage('排序更新失败', 'danger');
+                }
+            });
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %} 

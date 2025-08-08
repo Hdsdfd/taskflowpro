@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}申请管理员权限{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mt-5">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">申请管理员权限</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-warning">提交申请</button>
+                    <a href="{% url 'users:dashboard' %}" class="btn btn-secondary">返回</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

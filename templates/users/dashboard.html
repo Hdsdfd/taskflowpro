@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}仪表板 - TaskFlowPro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>欢迎回来，{{ user.username }}！
+        </h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">我的项目</h5>
+                        <h2 class="mb-0">{{ total_projects }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-project-diagram fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">我的任务</h5>
+                        <h2 class="mb-0">{{ total_tasks }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-list-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">用户角色</h5>
+                        <h6 class="mb-0">{{ user.profile.get_role_display }}</h6>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-tag fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-quick-actions me-2"></i>快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'projects:project_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-project-diagram me-2"></i>查看项目
+                    </a>
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-outline-success">
+                        <i class="fas fa-list-check me-2"></i>查看任务
+                    </a>
+                    <a href="{% url 'users:profile' %}" class="btn btn-outline-info">
+                        <i class="fas fa-user-edit me-2"></i>编辑资料
+                    </a>
+                    {% if not user.profile.is_admin %}
+                        <a href="{% url 'users:apply_admin' %}" class="btn btn-warning mt-3">
+                            申请管理员权限
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>系统信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-calendar me-2"></i>
+                        <strong>注册时间：</strong>{{ user.date_joined|date:"Y-m-d H:i" }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>最后登录：</strong>{{ user.last_login|date:"Y-m-d H:i" }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <strong>邮箱：</strong>{{ user.email }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

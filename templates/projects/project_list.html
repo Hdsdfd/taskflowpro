@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}项目列表 - TaskFlowPro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="fas fa-project-diagram me-2"></i>项目列表
+        </h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'projects:project_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>创建项目
+        </a>
+    </div>
+</div>
+
+{% if projects %}
+<div class="row">
+    {% for project in projects %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ project.name }}</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'projects:project_detail' project.pk %}">
+                            <i class="fas fa-eye me-2"></i>查看详情
+                        </a></li>
+                        {% if user.profile.is_admin or project.owner == user %}
+                        <li><a class="dropdown-item" href="{% url 'projects:project_update' project.pk %}">
+                            <i class="fas fa-edit me-2"></i>编辑项目
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger btn-delete" href="{% url 'projects:project_delete' project.pk %}">
+                            <i class="fas fa-trash me-2"></i>删除项目
+                        </a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted">
+                    {{ project.description|truncatewords:20|default:"暂无描述" }}
+                </p>
+                
+                <!-- 进度条 -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">进度</small>
+                        <small class="text-muted">{{ project.progress_percentage }}%</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ project.progress_percentage }}%"
+                             aria-valuenow="{{ project.progress_percentage }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <small class="text-muted">总任务</small>
+                        <div class="fw-bold">{{ project.task_count }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">已完成</small>
+                        <div class="fw-bold text-success">{{ project.completed_task_count }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-user me-1"></i>{{ project.owner.username }}
+                    </small>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>{{ project.created_at|date:"m-d" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-project-diagram fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">暂无项目</h4>
+    <p class="text-muted">开始创建您的第一个项目吧！</p>
+    <a href="{% url 'projects:project_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>创建项目
+    </a>
+</div>
+{% endif %}
+{% endblock %} 

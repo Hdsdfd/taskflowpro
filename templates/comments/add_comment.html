@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}添加评论 - {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-comment"></i> 为任务添加评论
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="task-info mb-4">
+                        <h5>任务信息</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>任务标题：</strong>{{ task.title }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>项目：</strong>{{ task.project.name }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <strong>负责人：</strong>{{ task.assignee.username }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>状态：</strong>
+                                <span class="badge badge-{{ task.status|yesno:'success,warning,info' }}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.content.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 提交评论
+                            </button>
+                            <a href="{% url 'tasks:task_detail' task.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> 返回任务详情
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

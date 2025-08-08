@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}删除项目 - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>确认删除项目
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5 class="alert-heading">警告！</h5>
+                    <p>您即将删除项目 <strong>"{{ project.name }}"</strong></p>
+                    <hr>
+                    <p class="mb-0">此操作将：</p>
+                    <ul class="mb-0">
+                        <li>隐藏该项目（软删除）</li>
+                        <li>保留项目中的所有任务</li>
+                        <li>项目成员将无法访问该项目</li>
+                    </ul>
+                </div>
+                
+                <div class="project-info mb-4">
+                    <h6>项目信息</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>项目名称：</strong>{{ project.name }}</p>
+                            <p><strong>负责人：</strong>{{ project.owner.username }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>创建时间：</strong>{{ project.created_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>任务数量：</strong>{{ project.task_count }}</p>
+                        </div>
+                    </div>
+                    {% if project.description %}
+                    <p><strong>项目描述：</strong></p>
+                    <p class="text-muted">{{ project.description }}</p>
+                    {% endif %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>取消
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>确认删除
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

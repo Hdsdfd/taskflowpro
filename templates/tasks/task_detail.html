@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }} - TaskFlowPro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            <i class="fas fa-list-check me-2"></i>{{ task.title }}
+        </h2>
+        <p class="text-muted">{{ task.description|default:"暂无描述" }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>编辑
+            </a>
+            <a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-outline-danger btn-delete">
+                <i class="fas fa-trash me-2"></i>删除
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 任务信息 -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>任务信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>项目：</strong>
+                            <a href="{% url 'projects:project_detail' task.project.pk %}">
+                                {{ task.project.name }}
+                            </a>
+                        </p>
+                        <p><strong>负责人：</strong>{{ task.assignee.username }}</p>
+                        <p><strong>创建者：</strong>{{ task.creator.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>优先级：</strong>
+                            <span class="badge priority-{{ task.priority }}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </p>
+                        <p><strong>状态：</strong>
+                            <span class="badge task-status-{{ task.status }}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>创建时间：</strong>{{ task.created_at|date:"Y-m-d H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if task.due_date %}
+                <div class="mt-3">
+                    <p><strong>截止日期：</strong>
+                        {{ task.due_date|date:"Y-m-d H:i" }}
+                        {% if task.is_overdue %}
+                        <span class="text-danger">(已逾期)</span>
+                        {% elif task.days_until_due %}
+                        <span class="text-warning">(还有 {{ task.days_until_due }} 天)</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+                
+                <!-- 状态更新 -->
+                <div class="mt-4">
+                    <h6>更新状态</h6>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary status-btn" 
+                                data-task-id="{{ task.pk }}" data-status="pending">
+                            待处理
+                        </button>
+                        <button type="button" class="btn btn-outline-primary status-btn" 
+                                data-task-id="{{ task.pk }}" data-status="in_progress">
+                            进行中
+                        </button>
+                        <button type="button" class="btn btn-outline-success status-btn" 
+                                data-task-id="{{ task.pk }}" data-status="completed">
+                            已完成
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评论区域 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>评论
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 添加评论表单 -->
+                <form method="post" action="{% url 'comments:add_comment' task.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="3" 
+                                  placeholder="添加评论..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>发表评论
+                    </button>
+                </form>
+                
+                <hr>
+                
+                <!-- 评论列表 -->
+                <div id="comments-list">
+                    <div class="text-center text-muted">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 侧边栏 -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>任务统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="h4 text-primary">{{ task.project.task_count }}</div>
+                        <small class="text-muted">项目总任务</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="h4 text-success">{{ task.project.completed_task_count }}</div>
+                        <small class="text-muted">已完成</small>
+                    </div>
+                </div>
+                
+                <!-- 项目进度 -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">项目进度</small>
+                        <small class="text-muted">{{ task.project.progress_percentage }}%</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ task.project.progress_percentage }}%">
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- 快速操作 -->
+                <h6>快速操作</h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'projects:project_detail' task.project.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-project-diagram me-2"></i>查看项目
+                    </a>
+                    <a href="{% url 'tasks:task_create' %}?project={{ task.project.pk }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-plus me-2"></i>添加任务
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 状态更新
+    $('.status-btn').on('click', function() {
+        var taskId = $(this).data('task-id');
+        var status = $(this).data('status');
+        var btn = $(this);
+        
+        $.ajax({
+            url: '/tasks/' + taskId + '/status/',
+            method: 'POST',
+            data: {
+                'status': status,
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.message, 'success');
+                    // 更新状态显示
+                    var statusBadge = $('.badge.task-status-' + '{{ task.status }}');
+                    statusBadge.text(response.status);
+                    statusBadge.removeClass().addClass('badge task-status-' + status);
+                } else {
+                    showMessage(response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('更新失败，请重试', 'danger');
+            }
+        });
+    });
+    
+    // 加载评论树
+    function renderComments(comments, level) {
+        let html = '';
+        level = level || 0;
+        comments.forEach(function(comment) {
+            html += `<div class="comment-item mb-3 p-3 border rounded" style="margin-left:${level*32}px;">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">`;
+            if (comment.avatar_url) {
+                html += `<img src="${comment.avatar_url}" class="rounded-circle" style="width:40px;height:40px;">`;
+            } else {
+                html += `<div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="fas fa-user text-white"></i></div>`;
+            }
+            html += `</div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">${comment.author}</h6>
+                                <p class="mb-1">${comment.content}</p>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-sm like-btn" data-id="${comment.id}" style="background: none; border: none;">
+                                        <i class="fa${comment.liked ? 's' : 'r'} fa-heart ${comment.liked ? 'text-danger' : 'text-secondary'}"></i> <span class="like-count">${comment.like_count}</span>
+                                    </button>
+                                    <a href="/comments/reply/${task_id}/${comment.id}/" class="btn btn-sm btn-outline-secondary">回复</a>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">`;
+            if (comment.can_edit) {
+                html += `<a href="/comments/edit/${comment.id}/" class="btn btn-outline-primary btn-sm me-1"><i class="fas fa-edit"></i></a>`;
+            }
+            if (comment.can_delete) {
+                html += `<button type="button" class="btn btn-outline-danger btn-sm delete-comment" data-comment-id="${comment.id}"><i class="fas fa-trash"></i></button>`;
+            }
+            html += `<small class="text-muted ms-2">${comment.created_at}</small></div></div>`;
+            // 递归渲染子评论
+            if (comment.replies && comment.replies.length > 0) {
+                html += renderComments(comment.replies, level+1);
+            }
+            html += `</div></div></div>`;
+        });
+        return html;
+    }
+    var task_id = {{ task.id }};
+    function loadComments() {
+        $.get(`/comments/list/${task_id}/`, function(data) {
+            if (data.comments.length === 0) {
+                $('#comments-list').html('<p class="text-muted text-center">暂无评论</p>');
+            } else {
+                $('#comments-list').html(renderComments(data.comments, 0));
+            }
+        });
+    }
+    loadComments();
+    // 点赞
+    $(document).on('click', '.like-btn', function() {
+        var btn = $(this);
+        var commentId = btn.data('id');
+        $.post(`/comments/like/${commentId}/`, {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        }, function(data) {
+            if (data.success) {
+                btn.find('.like-count').text(data.like_count);
+                var icon = btn.find('i');
+                if (data.liked) {
+                    icon.removeClass('fa-regular text-secondary').addClass('fa-solid text-danger');
+                } else {
+                    icon.removeClass('fa-solid text-danger').addClass('fa-regular text-secondary');
+                }
+            }
+        });
+    });
+    // 删除评论（动态绑定）
+    $(document).on('click', '.delete-comment', function() {
+        var commentId = $(this).data('comment-id');
+        var commentItem = $(this).closest('.comment-item');
+        if (confirm('确定要删除这条评论吗？')) {
+            $.ajax({
+                url: '/comments/delete/' + commentId + '/',
+                method: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    loadComments();
+                    showMessage('评论删除成功', 'success');
+                },
+                error: function() {
+                    showMessage('删除失败，请重试', 'danger');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

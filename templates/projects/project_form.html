@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}编辑项目{% else %}创建项目{% endif %} - TaskFlowPro
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-project-diagram me-2"></i>
+                    {% if form.instance.pk %}编辑项目{% else %}创建新项目{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    {{ form.name.label }}
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.owner.id_for_label }}" class="form-label">
+                                    {{ form.owner.label }}
+                                </label>
+                                {{ form.owner }}
+                                {% if form.owner.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.owner.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="alert alert-danger mt-1">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="{{ form.members.id_for_label }}" class="form-label">
+                            {{ form.members.label }}
+                        </label>
+                        {{ form.members }}
+                        {% if form.members.errors %}
+                            <div class="alert alert-danger mt-1">
+                                {{ form.members.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            按住 Ctrl 键（Mac 上按住 Cmd 键）可以选择多个成员
+                        </small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                            {% if form.is_active.errors %}
+                                <div class="alert alert-danger mt-1">
+                                    {{ form.is_active.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'projects:project_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>返回项目列表
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if form.instance.pk %}更新项目{% else %}创建项目{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 设置表单字段的样式
+    $('input[type="text"], textarea, select').addClass('form-control');
+    
+    // 多选框样式
+    $('select[multiple]').addClass('form-select');
+    
+    // 复选框样式
+    $('input[type="checkbox"]').addClass('form-check-input');
+});
+</script>
+{% endblock %} 
