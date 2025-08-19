@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 class UserProfile(models.Model):
     """
@@ -42,3 +43,29 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     """保存用户时自动保存用户档案"""
     instance.profile.save()
+
+
+class PasswordResetCode(models.Model):
+    """
+    找回密码邮箱验证码
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_codes', verbose_name='用户')
+    code = models.CharField(max_length=6, verbose_name='验证码')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    expires_at = models.DateTimeField(verbose_name='过期时间')
+    is_used = models.BooleanField(default=False, verbose_name='是否已使用')
+
+    class Meta:
+        verbose_name = '找回密码验证码'
+        verbose_name_plural = '找回密码验证码'
+        indexes = [
+            models.Index(fields=['user', 'code', 'is_used']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username}-{self.code}"
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expires_at

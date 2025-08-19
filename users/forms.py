@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm
 from django.contrib.auth.models import User
 from .models import UserProfile
 
@@ -65,4 +65,38 @@ class UserProfileForm(forms.ModelForm):
         } 
 
 class AdminApplyForm(forms.Form):
-    answer = forms.CharField(label='管理员申请问题：公司创始人是谁？', max_length=100) 
+    answer = forms.CharField(label='管理员申请问题：公司创始人是谁？', max_length=100)
+
+
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(label='邮箱', widget=forms.EmailInput(attrs={
+        'class': 'form-control',
+        'placeholder': '请输入注册邮箱'
+    }))
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip()
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError('该邮箱未注册')
+        return email
+
+
+class PasswordResetConfirmForm(SetPasswordForm):
+    code = forms.CharField(label='邮箱验证码', max_length=6, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': '请输入6位数字验证码'
+    }))
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': '请输入新密码'
+        })
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': '请确认新密码'
+        })
+        self.fields['code'].widget.attrs.update({
+            'class': 'form-control'
+        }) 

@@ -148,3 +148,12 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
 }
+
+# Email backend (development)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@taskflowpro.local')
+
+# Password reset configs
+PASSWORD_RESET_CODE_EXPIRE_MINUTES = int(os.getenv('PASSWORD_RESET_CODE_EXPIRE_MINUTES', '10'))
+PASSWORD_RESET_RESEND_INTERVAL_SECONDS = int(os.getenv('PASSWORD_RESET_RESEND_INTERVAL_SECONDS', '60'))
+PASSWORD_RESET_MAX_PER_HOUR = int(os.getenv('PASSWORD_RESET_MAX_PER_HOUR', '5'))

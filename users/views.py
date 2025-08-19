@@ -7,6 +7,13 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, AdminApplyForm
 from .models import UserProfile
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
+from .forms import PasswordResetRequestForm, PasswordResetConfirmForm
+from .models import PasswordResetCode
+import random
 
 def register_view(request):
     """
@@ -107,3 +114,105 @@ def apply_admin_view(request):
     else:
         form = AdminApplyForm()
     return render(request, 'users/apply_admin.html', {'form': form})
+
+
+def forgot_password_request_view(request):
+    """
+    第一步：输入邮箱，发送验证码（含频率限制）
+    """
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.get(email=email)
+
+            # 频率限制：60秒内只允许发送一次
+            last_record = PasswordResetCode.objects.filter(user=user).order_by('-created_at').first()
+            if last_record:
+                interval_seconds = (timezone.now() - last_record.created_at).total_seconds()
+                if interval_seconds < settings.PASSWORD_RESET_RESEND_INTERVAL_SECONDS:
+                    remaining = int(settings.PASSWORD_RESET_RESEND_INTERVAL_SECONDS - interval_seconds)
+                    messages.warning(request, f'发送过于频繁，请 {remaining} 秒后再试。')
+                    request.session['password_reset_email'] = email
+                    return redirect('users:forgot_password')
+
+            # 每小时最多5次
+            one_hour_ago = timezone.now() - timezone.timedelta(hours=1)
+            count_last_hour = PasswordResetCode.objects.filter(user=user, created_at__gte=one_hour_ago).count()
+            if count_last_hour >= settings.PASSWORD_RESET_MAX_PER_HOUR:
+                messages.error(request, '该邮箱请求过于频繁，请稍后再试。')
+                request.session['password_reset_email'] = email
+                return redirect('users:forgot_password')
+
+            # 生成6位数字验证码
+            code = f"{random.randint(0, 999999):06d}"
+            expires_at = timezone.now() + timezone.timedelta(minutes=settings.PASSWORD_RESET_CODE_EXPIRE_MINUTES)
+            PasswordResetCode.objects.create(user=user, code=code, expires_at=expires_at)
+            # 发送邮件
+            send_mail(
+                subject='TaskFlowPro 找回密码验证码',
+                message=(
+                    f'您的验证码为：{code}\n'
+                    f'有效期：{settings.PASSWORD_RESET_CODE_EXPIRE_MINUTES}分钟。\n'
+                    '若非本人操作请忽略本邮件。'
+                ),
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            messages.success(request, '验证码已发送到邮箱，请在有效期内完成验证。')
+            request.session['password_reset_email'] = email
+            return redirect('users:forgot_password_confirm')
+    else:
+        initial_email = request.session.get('password_reset_email')
+        form = PasswordResetRequestForm(initial={'email': initial_email} if initial_email else None)
+
+    return render(request, 'users/password_forgot.html', {'form': form})
+
+
+def forgot_password_confirm_view(request):
+    """
+    第二步：输入验证码并设置新密码
+    """
+    email = request.session.get('password_reset_email')
+    user = None
+    if email:
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+    
+    if request.method == 'POST':
+        if not user:
+            messages.error(request, '会话已过期或邮箱无效，请重新请求验证码。')
+            return redirect('users:forgot_password')
+        form = PasswordResetConfirmForm(user, request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            # 验证验证码
+            try:
+                record = PasswordResetCode.objects.filter(user=user, code=code, is_used=False).latest('created_at')
+            except PasswordResetCode.DoesNotExist:
+                record = None
+            if not record:
+                messages.error(request, '验证码无效，请检查后重试。')
+            elif record.is_expired:
+                messages.error(request, '验证码已过期，请重新获取。')
+            else:
+                # 设置新密码
+                form.save()
+                # 标记验证码已使用，并清理同邮箱其他旧验证码
+                record.is_used = True
+                record.save()
+                PasswordResetCode.objects.filter(user=user, is_used=False).update(is_used=True)
+                # 清理session
+                request.session.pop('password_reset_email', None)
+                messages.success(request, '密码已重置，请使用新密码登录。')
+                return redirect('users:login')
+    else:
+        if not user:
+            messages.info(request, '请先输入邮箱获取验证码。')
+            return redirect('users:forgot_password')
+        form = PasswordResetConfirmForm(user)
+
+    return render(request, 'users/password_reset_confirm.html', {'form': form, 'email': email})
