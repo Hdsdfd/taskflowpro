@@ -69,16 +69,31 @@ class AdminApplyForm(forms.Form):
 
 
 class PasswordResetRequestForm(forms.Form):
+    username = forms.CharField(label='用户名', widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': '请输入账号/用户名'
+    }))
     email = forms.EmailField(label='邮箱', widget=forms.EmailInput(attrs={
         'class': 'form-control',
         'placeholder': '请输入注册邮箱'
     }))
 
-    def clean_email(self):
-        email = self.cleaned_data['email'].strip()
-        if not User.objects.filter(email=email).exists():
-            raise forms.ValidationError('该邮箱未注册')
-        return email
+    def clean(self):
+        cleaned = super().clean()
+        username = cleaned.get('username', '').strip()
+        email = cleaned.get('email', '').strip()
+        if not username or not email:
+            return cleaned
+        try:
+            a = User.objects.get(username)
+            print(a)
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise forms.ValidationError('用户名不存在')
+        # 邮箱大小写不敏感对比
+        if (user.email or '').strip().lower() != email.lower():
+            raise forms.ValidationError('用户名与邮箱不匹配')
+        return cleaned
 
 
 class PasswordResetConfirmForm(SetPasswordForm):

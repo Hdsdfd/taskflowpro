@@ -1,0 +1,18 @@
+[Unit]
+Description=TaskFlowPro Gunicorn daemon
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/taskflowpro
+Environment="PATH=/var/www/taskflowpro/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=TaskFlowPro.settings_production"
+ExecStart=/var/www/taskflowpro/venv/bin/gunicorn --config gunicorn.conf.py TaskFlowPro.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target 
