@@ -118,13 +118,14 @@ def apply_admin_view(request):
 
 def forgot_password_request_view(request):
     """
-    第一步：输入邮箱，发送验证码（含频率限制）
+    第一步：输入用户名与邮箱，发送验证码（含频率限制）
     """
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
+            username = form.cleaned_data['username']
             email = form.cleaned_data['email']
-            user = User.objects.get(email=email)
+            user = User.objects.get(username=username)
 
             # 频率限制：60秒内只允许发送一次
             last_record = PasswordResetCode.objects.filter(user=user).order_by('-created_at').first()
@@ -133,6 +134,7 @@ def forgot_password_request_view(request):
                 if interval_seconds < settings.PASSWORD_RESET_RESEND_INTERVAL_SECONDS:
                     remaining = int(settings.PASSWORD_RESET_RESEND_INTERVAL_SECONDS - interval_seconds)
                     messages.warning(request, f'发送过于频繁，请 {remaining} 秒后再试。')
+                    request.session['password_reset_user_id'] = user.id
                     request.session['password_reset_email'] = email
                     return redirect('users:forgot_password')
 
@@ -140,7 +142,8 @@ def forgot_password_request_view(request):
             one_hour_ago = timezone.now() - timezone.timedelta(hours=1)
             count_last_hour = PasswordResetCode.objects.filter(user=user, created_at__gte=one_hour_ago).count()
             if count_last_hour >= settings.PASSWORD_RESET_MAX_PER_HOUR:
-                messages.error(request, '该邮箱请求过于频繁，请稍后再试。')
+                messages.error(request, '该账号请求过于频繁，请稍后再试。')
+                request.session['password_reset_user_id'] = user.id
                 request.session['password_reset_email'] = email
                 return redirect('users:forgot_password')
 
@@ -161,11 +164,22 @@ def forgot_password_request_view(request):
                 fail_silently=False,
             )
             messages.success(request, '验证码已发送到邮箱，请在有效期内完成验证。')
+            request.session['password_reset_user_id'] = user.id
             request.session['password_reset_email'] = email
             return redirect('users:forgot_password_confirm')
     else:
         initial_email = request.session.get('password_reset_email')
-        form = PasswordResetRequestForm(initial={'email': initial_email} if initial_email else None)
+        initial_username = None
+        user_id = request.session.get('password_reset_user_id')
+        if user_id:
+            try:
+                initial_username = User.objects.get(id=user_id).username
+            except User.DoesNotExist:
+                initial_username = None
+        form = PasswordResetRequestForm(initial={
+            'email': initial_email,
+            'username': initial_username,
+        })
 
     return render(request, 'users/password_forgot.html', {'form': form})
 
@@ -174,17 +188,18 @@ def forgot_password_confirm_view(request):
     """
     第二步：输入验证码并设置新密码
     """
+    user_id = request.session.get('password_reset_user_id')
     email = request.session.get('password_reset_email')
     user = None
-    if email:
+    if user_id:
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             user = None
     
     if request.method == 'POST':
         if not user:
-            messages.error(request, '会话已过期或邮箱无效，请重新请求验证码。')
+            messages.error(request, '会话已过期或账号无效，请重新请求验证码。')
             return redirect('users:forgot_password')
         form = PasswordResetConfirmForm(user, request.POST)
         if form.is_valid():
@@ -206,12 +221,13 @@ def forgot_password_confirm_view(request):
                 record.save()
                 PasswordResetCode.objects.filter(user=user, is_used=False).update(is_used=True)
                 # 清理session
+                request.session.pop('password_reset_user_id', None)
                 request.session.pop('password_reset_email', None)
                 messages.success(request, '密码已重置，请使用新密码登录。')
                 return redirect('users:login')
     else:
         if not user:
-            messages.info(request, '请先输入邮箱获取验证码。')
+            messages.info(request, '请先输入账号与邮箱获取验证码。')
             return redirect('users:forgot_password')
         form = PasswordResetConfirmForm(user)
 
