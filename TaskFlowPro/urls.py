@@ -18,8 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    # 根路径重定向到项目列表
+    path('', RedirectView.as_view(url='/projects/', permanent=False), name='root_redirect'),
+
     path('admin/', admin.site.urls),
     path('', include('users.urls')),
     path('projects/', include('projects.urls')),
