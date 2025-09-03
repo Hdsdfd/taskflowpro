@@ -84,6 +84,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'error': '用户不存在'}, status=status.HTTP_400_BAD_REQUEST)
 
+class MilestoneViewSet(viewsets.ModelViewSet):
+    """里程碑视图集"""
+    queryset = Milestone.objects.all()
+    serializer_class = MilestoneSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限过滤里程碑"""
+        user = self.request.user
+        if user.is_staff:
+            return Milestone.objects.all()
+        return Milestone.objects.filter(project__members=user)
+
 class TaskViewSet(viewsets.ModelViewSet):
     """任务视图集"""
     queryset = Task.objects.all()
@@ -144,6 +157,25 @@ class TaskViewSet(viewsets.ModelViewSet):
         
         return Response({'message': '计时停止', 'duration': active_timer.duration_hours})
 
+class TaskTagViewSet(viewsets.ModelViewSet):
+    """任务标签视图集"""
+    queryset = TaskTag.objects.all()
+    serializer_class = TaskTagSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class TimeEntryViewSet(viewsets.ModelViewSet):
+    """工时记录视图集"""
+    queryset = TimeEntry.objects.all()
+    serializer_class = TimeEntrySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限过滤工时记录"""
+        user = self.request.user
+        if user.is_staff:
+            return TimeEntry.objects.all()
+        return TimeEntry.objects.filter(user=user)
+
 class ProjectFileViewSet(viewsets.ModelViewSet):
     """项目文件视图集"""
     queryset = ProjectFile.objects.all()
@@ -167,6 +199,12 @@ class ProjectFileViewSet(viewsets.ModelViewSet):
         file_obj.increment_download_count()
         return Response({'message': '下载记录已更新'})
 
+class FileCategoryViewSet(viewsets.ModelViewSet):
+    """文件分类视图集"""
+    queryset = FileCategory.objects.all()
+    serializer_class = FileCategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """通知视图集"""
     serializer_class = NotificationSerializer
@@ -188,6 +226,79 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         """标记所有通知为已读"""
         self.get_queryset().update(is_read=True)
         return Response({'message': '所有通知已标记为已读'})
+
+class UserNotificationSettingsViewSet(viewsets.ModelViewSet):
+    """用户通知设置视图集"""
+    serializer_class = UserNotificationSettingsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """获取当前用户的设置"""
+        return UserNotificationSettings.objects.filter(user=self.request.user)
+
+class ProjectReportViewSet(viewsets.ReadOnlyModelViewSet):
+    """项目报告视图集"""
+    queryset = ProjectReport.objects.all()
+    serializer_class = ProjectReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限过滤报告"""
+        user = self.request.user
+        if user.is_staff:
+            return ProjectReport.objects.all()
+        return ProjectReport.objects.filter(
+            models.Q(project__members=user) |
+            models.Q(generated_by=user)
+        ).distinct()
+
+class TeamPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
+    """团队绩效视图集"""
+    queryset = TeamPerformance.objects.all()
+    serializer_class = TeamPerformanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限过滤绩效数据"""
+        user = self.request.user
+        if user.is_staff:
+            return TeamPerformance.objects.all()
+        return TeamPerformance.objects.filter(
+            models.Q(user=user) |
+            models.Q(project__members=user)
+        ).distinct()
+
+class WorkflowInstanceViewSet(viewsets.ModelViewSet):
+    """工作流实例视图集"""
+    queryset = WorkflowInstance.objects.all()
+    serializer_class = WorkflowInstanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限过滤工作流"""
+        user = self.request.user
+        if user.is_staff:
+            return WorkflowInstance.objects.all()
+        return WorkflowInstance.objects.filter(
+            models.Q(started_by=user) |
+            models.Q(project__members=user)
+        ).distinct()
+
+class ApprovalRequestViewSet(viewsets.ModelViewSet):
+    """审批请求视图集"""
+    queryset = ApprovalRequest.objects.all()
+    serializer_class = ApprovalRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限过滤审批请求"""
+        user = self.request.user
+        if user.is_staff:
+            return ApprovalRequest.objects.all()
+        return ApprovalRequest.objects.filter(
+            models.Q(requester=user) |
+            models.Q(project__members=user)
+        ).distinct()
 
 class CalendarEventViewSet(viewsets.ModelViewSet):
     """日历事件视图集"""

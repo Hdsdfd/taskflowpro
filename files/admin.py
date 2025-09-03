@@ -41,7 +41,14 @@ class FileVersionAdmin(admin.ModelAdmin):
 
 @admin.register(FileComment)
 class FileCommentAdmin(admin.ModelAdmin):
-    list_display = ['file', 'author', 'short_content', 'parent', 'created_at']
+    list_display = ['file', 'author', 'content_preview', 'parent', 'created_at']
     list_filter = ['created_at']
     search_fields = ['file__name', 'author__username', 'content']
     ordering = ['-created_at']
+    
+    def content_preview(self, obj):
+        """内容预览"""
+        if len(obj.content) > 50:
+            return obj.content[:50] + '...'
+        return obj.content
+    content_preview.short_description = '内容预览'

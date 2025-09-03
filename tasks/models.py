@@ -64,7 +64,7 @@ class Task(models.Model):
         verbose_name='任务进度(%)'
     )
     complexity = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=[
             ('simple', '简单'),
             ('medium', '中等'),

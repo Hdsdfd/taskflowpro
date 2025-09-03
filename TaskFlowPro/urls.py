@@ -26,12 +26,13 @@ urlpatterns = [
     path('tasks/', include('tasks.urls')),
     path('comments/', include('comments.urls')),
     path('api/', include('api.urls')),
-    path('files/', include('files.urls')),
-    path('notifications/', include('notifications.urls')),
-    path('analytics/', include('analytics.urls')),
-    path('workflows/', include('workflows.urls')),
-    path('calendar/', include('calendar.urls')),
-    path('integrations/', include('integrations.urls')),
+    # 暂时注释掉新应用的URL配置，等创建完urls.py文件后再启用
+    # path('files/', include('files.urls')),
+    # path('notifications/', include('notifications.urls')),
+    # path('analytics/', include('analytics.urls')),
+    # path('workflows/', include('workflows.urls')),
+    # path('calendar/', include('calendar.urls')),
+    # path('integrations/', include('integrations.urls')),
 ]
 
 # 开发环境静态文件服务
