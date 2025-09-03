@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ event.title }}</h1>
+<p>类型：{{ event.get_event_type_display }}</p>
+<p>开始：{{ event.start_time|date:'Y-m-d H:i' }}</p>
+<p>结束：{{ event.end_time|date:'Y-m-d H:i' }}</p>
+<p>地点：{{ event.location }}</p>
+<p>参与者：{% for u in event.attendees.all %}{{ u.username }} {% empty %}无{% endfor %}</p>
+<p>描述：{{ event.description }}</p>
+{% endblock %}

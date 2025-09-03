@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>我的通知</h1>
+<a href="{% url 'notifications:notification_create' %}" class="btn btn-primary">创建通知</a>
+<table class="table">
+  <thead>
+    <tr>
+      <th>标题</th>
+      <th>类型</th>
+      <th>优先级</th>
+      <th>是否已读</th>
+      <th>时间</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for n in notifications %}
+    <tr>
+      <td><a href="{% url 'notifications:notification_detail' n.pk %}">{{ n.title }}</a></td>
+      <td>{{ n.get_notification_type_display }}</td>
+      <td>{{ n.get_priority_display }}</td>
+      <td>{{ n.is_read|yesno:"是,否" }}</td>
+      <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">暂无通知</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

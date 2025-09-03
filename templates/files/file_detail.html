@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ file.name }}</h1>
+<p>项目：{{ file.project.name }}</p>
+<p>类型：{{ file.get_file_type_display }}</p>
+<p>大小：{{ file.file_size_mb }} MB</p>
+<p>上传者：{{ file.uploaded_by.username }}</p>
+<p>上传时间：{{ file.uploaded_at|date:'Y-m-d H:i' }}</p>
+<p>描述：{{ file.description }}</p>
+<a href="{{ file.file.url }}" class="btn btn-primary">下载</a>
+{% endblock %}
