@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>项目报告</h1>
+<a href="{% url 'analytics:report_create' %}" class="btn btn-primary">新建报告</a>
+<table class="table">
+  <thead>
+    <tr>
+      <th>标题</th>
+      <th>类型</th>
+      <th>项目</th>
+      <th>时间范围</th>
+      <th>生成者</th>
+      <th>生成时间</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in reports %}
+    <tr>
+      <td><a href="{% url 'analytics:report_detail' r.pk %}">{{ r.title }}</a></td>
+      <td>{{ r.get_report_type_display }}</td>
+      <td>{{ r.project.name }}</td>
+      <td>{{ r.period_start }} - {{ r.period_end }}</td>
+      <td>{{ r.generated_by.username }}</td>
+      <td>{{ r.generated_at|date:'Y-m-d H:i' }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">暂无报告</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

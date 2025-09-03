@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ request_obj.title }}</h1>
+<p>类型：{{ request_obj.get_request_type_display }}</p>
+<p>优先级：{{ request_obj.get_priority_display }}</p>
+<p>状态：{{ request_obj.get_status_display }}</p>
+<p>项目：{{ request_obj.project.name }}</p>
+<p>截止时间：{{ request_obj.deadline|date:'Y-m-d H:i' }}</p>
+<p>描述：{{ request_obj.description }}</p>
+<p>创建时间：{{ request_obj.created_at|date:'Y-m-d H:i' }}</p>
+{% endblock %}

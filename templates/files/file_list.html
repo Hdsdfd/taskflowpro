@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>项目文件</h1>
+<a href="{% url 'files:file_create' %}" class="btn btn-primary">上传新文件</a>
+<table class="table">
+  <thead>
+    <tr>
+      <th>名称</th>
+      <th>项目</th>
+      <th>类型</th>
+      <th>大小(MB)</th>
+      <th>上传者</th>
+      <th>时间</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for f in files %}
+    <tr>
+      <td><a href="{% url 'files:file_detail' f.pk %}">{{ f.name }}</a></td>
+      <td>{{ f.project.name }}</td>
+      <td>{{ f.get_file_type_display }}</td>
+      <td>{{ f.file_size_mb }}</td>
+      <td>{{ f.uploaded_by.username }}</td>
+      <td>{{ f.uploaded_at|date:'Y-m-d H:i' }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">暂无文件</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

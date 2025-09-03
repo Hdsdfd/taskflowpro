@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ service.name }}</h1>
+<p>类型：{{ service.get_service_type_display }}</p>
+<p>状态：{{ service.is_active|yesno:"启用,禁用" }}</p>
+<p>地址：{{ service.base_url }}</p>
+<p>API版本：{{ service.api_version }}</p>
+<p>文档：<a href="{{ service.documentation_url }}" target="_blank">打开</a></p>
+<p>认证方式：{{ service.get_auth_type_display }}</p>
+<p>描述：{{ service.description }}</p>
+{% endblock %}

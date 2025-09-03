@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ report.title }}</h1>
+<p>类型：{{ report.get_report_type_display }}</p>
+<p>项目：{{ report.project.name }}</p>
+<p>统计区间：{{ report.period_start }} - {{ report.period_end }}</p>
+<p>生成者：{{ report.generated_by.username }}</p>
+<p>时间：{{ report.generated_at|date:'Y-m-d H:i' }}</p>
+<hr/>
+<h3>内容</h3>
+<pre>{{ report.content|json_script:"report_json" }}</pre>
+{% endblock %}
