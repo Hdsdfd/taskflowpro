@@ -143,9 +143,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login/Logout URLs
-LOGIN_URL = '/users/login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/projects/'
-LOGOUT_REDIRECT_URL = '/users/login/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 # Messages
 from django.contrib.messages import constants as messages
