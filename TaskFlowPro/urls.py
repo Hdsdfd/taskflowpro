@@ -21,14 +21,20 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/', include('users.urls')),
+    path('', include('users.urls')),
     path('projects/', include('projects.urls')),
     path('tasks/', include('tasks.urls')),
     path('comments/', include('comments.urls')),
-    path('', include('projects.urls', namespace='projects')),  # 默认重定向到项目列表
+    path('api/', include('api.urls')),
+    path('files/', include('files.urls')),
+    path('notifications/', include('notifications.urls')),
+    path('analytics/', include('analytics.urls')),
+    path('workflows/', include('workflows.urls')),
+    path('calendar/', include('calendar.urls')),
+    path('integrations/', include('integrations.urls')),
 ]
 
-# 开发环境下提供媒体文件服务
+# 开发环境静态文件服务
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
