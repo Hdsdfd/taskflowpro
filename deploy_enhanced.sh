@@ -64,7 +64,7 @@ python manage.py makemigrations files
 python manage.py makemigrations notifications
 python manage.py makemigrations analytics
 python manage.py makemigrations workflows
-python manage.py makemigrations calendar
+python manage.py makemigrations calendars
 python manage.py makemigrations api
 python manage.py makemigrations integrations
 

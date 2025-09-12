@@ -5,6 +5,6 @@
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit" class="btn btn-success">提交</button>
-  <a href="{% url 'calendar:event_list' %}" class="btn btn-secondary">返回</a>
+  <a href="{% url 'calendars:event_list' %}" class="btn btn-secondary">返回</a>
 </form>
 {% endblock %}

@@ -12,7 +12,7 @@ python manage.py makemigrations files
 python manage.py makemigrations notifications
 python manage.py makemigrations analytics
 python manage.py makemigrations workflows
-python manage.py makemigrations calendar
+python manage.py makemigrations calendars
 python manage.py makemigrations api
 python manage.py makemigrations integrations
 
@@ -39,7 +39,7 @@ python manage.py migrate files
 python manage.py migrate notifications
 python manage.py migrate analytics
 python manage.py migrate workflows
-python manage.py migrate calendar
+python manage.py migrate calendars
 python manage.py migrate api
 python manage.py migrate integrations
 ```
@@ -78,7 +78,7 @@ python manage.py dbshell
 - 多步骤工作流
 - 审批请求管理
 
-### 日历管理 (calendar)
+### 日历管理 (calendars)
 - 团队日历和事件管理
 - 会议安排和出勤记录
 - 重复事件支持

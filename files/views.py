@@ -26,7 +26,7 @@ class ProjectFileCreateView(LoginRequiredMixin, CreateView):
     model = ProjectFile
     form_class = ProjectFileForm
     template_name = 'files/file_form.html'
-    success_url = reverse_lazy('files:file_list')
+    success_url = reverse_lazy('files:file_list')  
 
     def form_valid(self, form):
         form.instance.uploaded_by = self.request.user

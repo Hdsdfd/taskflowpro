@@ -8,7 +8,7 @@ from files.models import ProjectFile, FileCategory
 from notifications.models import Notification, UserNotificationSettings
 from analytics.models import ProjectReport, TeamPerformance
 from workflows.models import WorkflowInstance, ApprovalRequest
-from calendar.models import CalendarEvent, Meeting
+from calendars.models import calendarsEvent, Meeting
 from .serializers import (
     UserSerializer, ProjectSerializer, MilestoneSerializer,
     TaskSerializer, TaskTagSerializer, TimeEntrySerializer,
@@ -16,7 +16,7 @@ from .serializers import (
     NotificationSerializer, UserNotificationSettingsSerializer,
     ProjectReportSerializer, TeamPerformanceSerializer,
     WorkflowInstanceSerializer, ApprovalRequestSerializer,
-    CalendarEventSerializer, MeetingSerializer
+    calendarsEventSerializer, MeetingSerializer
 )
 from django.db import models
 from django.utils import timezone
@@ -300,16 +300,16 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
             models.Q(project__members=user)
         ).distinct()
 
-class CalendarEventViewSet(viewsets.ModelViewSet):
+class calendarsEventViewSet(viewsets.ModelViewSet):
     """日历事件视图集"""
-    queryset = CalendarEvent.objects.all()
-    serializer_class = CalendarEventSerializer
+    queryset = calendarsEvent.objects.all()
+    serializer_class = calendarsEventSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         """根据用户权限过滤事件"""
         user = self.request.user
-        return CalendarEvent.objects.filter(
+        return calendarsEvent.objects.filter(
             models.Q(creator=user) |
             models.Q(attendees=user) |
             models.Q(project__members=user)

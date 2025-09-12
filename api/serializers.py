@@ -6,7 +6,7 @@ from files.models import ProjectFile, FileCategory
 from notifications.models import Notification, UserNotificationSettings
 from analytics.models import ProjectReport, TeamPerformance
 from workflows.models import WorkflowInstance, ApprovalRequest
-from calendar.models import CalendarEvent, Meeting
+from calendars.models import calendarsEvent, Meeting
 
 class UserSerializer(serializers.ModelSerializer):
     """用户序列化器"""
@@ -156,7 +156,7 @@ class ApprovalRequestSerializer(serializers.ModelSerializer):
         model = ApprovalRequest
         fields = '__all__'
 
-class CalendarEventSerializer(serializers.ModelSerializer):
+class calendarsEventSerializer(serializers.ModelSerializer):
     """日历事件序列化器"""
     creator = UserSerializer(read_only=True)
     attendees = UserSerializer(many=True, read_only=True)
@@ -168,7 +168,7 @@ class CalendarEventSerializer(serializers.ModelSerializer):
     is_upcoming = serializers.ReadOnlyField()
     
     class Meta:
-        model = CalendarEvent
+        model = calendarsEvent
         fields = '__all__'
 
 class MeetingSerializer(serializers.ModelSerializer):

@@ -17,7 +17,7 @@ router.register(r'project-reports', views.ProjectReportViewSet, basename='projec
 router.register(r'team-performance', views.TeamPerformanceViewSet, basename='team-performance')
 router.register(r'workflow-instances', views.WorkflowInstanceViewSet, basename='workflow-instance')
 router.register(r'approval-requests', views.ApprovalRequestViewSet, basename='approval-request')
-router.register(r'calendar-events', views.CalendarEventViewSet)
+router.register(r'calendars-events', views.calendarsEventViewSet)
 router.register(r'meetings', views.MeetingViewSet)
 router.register(r'dashboard', views.DashboardViewSet, basename='dashboard')
 

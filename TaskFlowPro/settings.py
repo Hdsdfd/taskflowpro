@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'notifications',
     'analytics',
     'workflows',
-    'calendar',
+    'calendars',
     'api',
     'integrations',
 ]

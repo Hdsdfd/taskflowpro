@@ -124,7 +124,7 @@
                 {% if task.due_date %}
                 <div class="mt-2 text-center">
                     <small class="text-muted">
-                        <i class="fas fa-calendar me-1"></i>
+                        <i class="fas fa-calendars me-1"></i>
                         截止: {{ task.due_date|date:"m-d H:i" }}
                         {% if task.is_overdue %}
                         <span class="text-danger">(已逾期)</span>
@@ -139,7 +139,7 @@
                         <i class="fas fa-user me-1"></i>{{ task.creator.username }}
                     </small>
                     <small class="text-muted">
-                        <i class="fas fa-calendar me-1"></i>{{ task.created_at|date:"m-d" }}
+                        <i class="fas fa-calendars me-1"></i>{{ task.created_at|date:"m-d" }}
                     </small>
                 </div>
             </div>

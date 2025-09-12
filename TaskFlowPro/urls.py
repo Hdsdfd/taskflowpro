@@ -34,7 +34,7 @@ urlpatterns = [
     path('notifications/', include('notifications.urls')),
     path('analytics/', include('analytics.urls')),
     path('workflows/', include('workflows.urls')),
-    path('calendar/', include('calendar.urls')),
+    path('calendars/', include('calendars.urls')),
     path('integrations/', include('integrations.urls')),
 ]
 

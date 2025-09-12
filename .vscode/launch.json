@@ -1,9 +1,10 @@
 {
     "version": "0.2.0",
     "configurations": [
+    
         {
             "name": "Python: Django",
-            "type": "debugpy",
+            "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
