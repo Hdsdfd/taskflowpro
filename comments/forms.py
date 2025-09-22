@@ -20,6 +20,7 @@ class CommentForm(forms.ModelForm):
         }
 
 class ReplyCommentForm(forms.ModelForm):
+    """回复评论表单：与 CommentForm 一致但可配置不同的 UI 行数"""
     class Meta:
         model = Comment
         fields = ['content']

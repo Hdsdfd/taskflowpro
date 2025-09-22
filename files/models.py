@@ -9,6 +9,7 @@ class FileCategory(models.Model):
     """
     文件分类模型
     """
+    # 分类基础字段：名称、说明、颜色（用于前端标签显示）
     name = models.CharField(max_length=100, verbose_name='分类名称')
     description = models.TextField(blank=True, verbose_name='分类描述')
     color = models.CharField(max_length=7, default='#6c757d', verbose_name='分类颜色')
@@ -36,6 +37,7 @@ class ProjectFile(models.Model):
         ('other', '其他'),
     )
     
+    # 存储文件的核心信息
     name = models.CharField(max_length=255, verbose_name='文件名')
     original_name = models.CharField(max_length=255, verbose_name='原始文件名')
     file = models.FileField(upload_to='project_files/%Y/%m/%d/', verbose_name='文件')
@@ -43,14 +45,17 @@ class ProjectFile(models.Model):
     file_size = models.BigIntegerField(verbose_name='文件大小(字节)')
     mime_type = models.CharField(max_length=100, verbose_name='MIME类型')
     
+    # 关联信息：所属项目、可选关联任务、分类
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='files', verbose_name='所属项目')
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='files', null=True, blank=True, verbose_name='关联任务')
     category = models.ForeignKey(FileCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='文件分类')
     
+    # 审计信息：上传人与时间
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='上传者')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='上传时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     
+    # 元数据：描述、标签、公开性（是否允许非成员访问）与下载次数
     description = models.TextField(blank=True, verbose_name='文件描述')
     tags = models.CharField(max_length=500, blank=True, verbose_name='标签')
     is_public = models.BooleanField(default=False, verbose_name='是否公开')
@@ -65,6 +70,7 @@ class ProjectFile(models.Model):
         return self.name
     
     def save(self, *args, **kwargs):
+        # 自动补全文件大小与 MIME 类型，避免前端篡改
         if not self.file_size and self.file:
             self.file_size = self.file.size
         if not self.mime_type and self.file:
@@ -91,6 +97,8 @@ class FileVersion(models.Model):
     """
     文件版本模型
     """
+    # 注意：此处存在同名字段复用问题：下方再次定义了名为 file 的 FileField。
+    # 这会覆盖上面的 ForeignKey 字段定义，建议后续迁移中将下方字段重命名为 version_file。
     file = models.ForeignKey(ProjectFile, on_delete=models.CASCADE, related_name='versions', verbose_name='文件')
     version_number = models.CharField(max_length=20, verbose_name='版本号')
     file = models.FileField(upload_to='file_versions/%Y/%m/%d/', verbose_name='版本文件')
@@ -113,6 +121,7 @@ class FileComment(models.Model):
     """
     文件评论模型
     """
+    # 支持多级回复的评论树（parent 为自引用外键）
     file = models.ForeignKey(ProjectFile, on_delete=models.CASCADE, related_name='comments', verbose_name='文件')
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='评论者')
     content = models.TextField(verbose_name='评论内容')

@@ -14,6 +14,7 @@ class TaskListView(LoginRequiredMixin, ListView):
     """
     任务列表视图
     """
+    # 支持分页，按用户角色与筛选条件过滤
     model = Task
     template_name = 'tasks/task_list.html'
     context_object_name = 'tasks'
@@ -54,6 +55,7 @@ def task_list_view(request):
     """
     任务列表视图（函数视图版本）
     """
+    # 与类视图逻辑一致，保留函数版本便于复用
     user = request.user
     queryset = Task.objects.select_related('project', 'assignee', 'creator')
     
@@ -86,6 +88,7 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
     """
     任务详情视图
     """
+    # 权限：管理员查看全部，普通用户仅能查看与其相关的任务
     model = Task
     template_name = 'tasks/task_detail.html'
     context_object_name = 'task'
@@ -104,6 +107,7 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     """
     创建任务视图
     """
+    # 表单会根据传入的 user 限制项目/负责人下拉选项
     model = Task
     form_class = TaskForm
     template_name = 'tasks/task_form.html'
@@ -137,6 +141,7 @@ class TaskUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     编辑任务视图
     """
+    # 仅管理员、创建者或负责人可编辑
     model = Task
     form_class = TaskForm
     template_name = 'tasks/task_form.html'
@@ -164,6 +169,7 @@ class TaskDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     删除任务视图
     """
+    # 仅管理员或创建者可删除
     model = Task
     template_name = 'tasks/task_confirm_delete.html'
     success_url = reverse_lazy('tasks:task_list')
@@ -183,6 +189,7 @@ def update_task_status(request, pk):
     """
     AJAX 更新任务状态
     """
+    # 校验权限并更新状态，返回 JSON 响应
     if request.method == 'POST':
         task = get_object_or_404(Task, pk=pk)
         
@@ -210,6 +217,7 @@ def update_task_order(request):
     """
     AJAX 更新任务排序
     """
+    # 接收任务 ID 列表并按顺序写入 order 字段
     if request.method == 'POST':
         task_ids = request.POST.getlist('task_ids[]')
         user = request.user

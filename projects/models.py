@@ -6,8 +6,10 @@ class Project(models.Model):
     """
     项目模型
     """
+    # 基本信息
     name = models.CharField(max_length=200, verbose_name='项目名称')
     description = models.TextField(blank=True, verbose_name='项目描述')
+    # 负责人与成员
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_projects', verbose_name='项目负责人')
     members = models.ManyToManyField(User, related_name='projects', blank=True, verbose_name='项目成员')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
@@ -17,6 +19,7 @@ class Project(models.Model):
     # 新增甘特图相关字段
     start_date = models.DateField(null=True, blank=True, verbose_name='项目开始日期')
     end_date = models.DateField(null=True, blank=True, verbose_name='项目结束日期')
+    # 冗余进度值（也可用任务完成率动态计算）
     progress = models.IntegerField(default=0, verbose_name='项目进度百分比')
     status = models.CharField(
         max_length=20,
@@ -41,6 +44,7 @@ class Project(models.Model):
         default='medium',
         verbose_name='项目优先级'
     )
+    # 预算与实际成本
     budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='项目预算')
     actual_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='实际成本')
     
@@ -95,6 +99,7 @@ class Milestone(models.Model):
     """
     项目里程碑模型
     """
+    # 关联所属项目
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='milestones', verbose_name='项目')
     name = models.CharField(max_length=200, verbose_name='里程碑名称')
     description = models.TextField(blank=True, verbose_name='里程碑描述')

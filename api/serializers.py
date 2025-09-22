@@ -17,8 +17,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     """项目序列化器"""
+    # 嵌套只读：防止 API 端直接写入关联，统一由视图或业务处理
     owner = UserSerializer(read_only=True)
     members = UserSerializer(many=True, read_only=True)
+    # 计算字段来自模型 @property
     progress_percentage = serializers.ReadOnlyField()
     is_overdue = serializers.ReadOnlyField()
     days_remaining = serializers.ReadOnlyField()
@@ -44,10 +46,12 @@ class TaskTagSerializer(serializers.ModelSerializer):
 
 class TaskSerializer(serializers.ModelSerializer):
     """任务序列化器"""
+    # 关联对象一律只读，避免通过该接口擅自改变归属关系
     project = ProjectSerializer(read_only=True)
     assignee = UserSerializer(read_only=True)
     creator = UserSerializer(read_only=True)
     tags = TaskTagSerializer(many=True, read_only=True)
+    # 来自模型属性的只读派生字段
     is_overdue = serializers.ReadOnlyField()
     days_until_due = serializers.ReadOnlyField()
     has_subtasks = serializers.ReadOnlyField()
@@ -59,6 +63,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class TaskDependencySerializer(serializers.ModelSerializer):
     """任务依赖序列化器"""
+    # 双端任务以嵌套只读输出，便于前端直接展示
     dependent_task = TaskSerializer(read_only=True)
     prerequisite_task = TaskSerializer(read_only=True)
     
@@ -83,6 +88,7 @@ class FileCategorySerializer(serializers.ModelSerializer):
 
 class ProjectFileSerializer(serializers.ModelSerializer):
     """项目文件序列化器"""
+    # 关联对象信息与派生属性（大小/扩展名）
     project = ProjectSerializer(read_only=True)
     task = TaskSerializer(read_only=True)
     category = FileCategorySerializer(read_only=True)
@@ -132,6 +138,7 @@ class TeamPerformanceSerializer(serializers.ModelSerializer):
 
 class WorkflowInstanceSerializer(serializers.ModelSerializer):
     """工作流实例序列化器"""
+    # 仅提供主键/只读嵌套，防止外键被错误写入
     workflow = serializers.PrimaryKeyRelatedField(read_only=True)
     project = ProjectSerializer(read_only=True)
     task = TaskSerializer(read_only=True)
@@ -158,6 +165,7 @@ class ApprovalRequestSerializer(serializers.ModelSerializer):
 
 class calendarsEventSerializer(serializers.ModelSerializer):
     """日历事件序列化器"""
+    # 常见派生字段：时长、是否过去/进行中/将来
     creator = UserSerializer(read_only=True)
     attendees = UserSerializer(many=True, read_only=True)
     project = ProjectSerializer(read_only=True)
@@ -173,6 +181,7 @@ class calendarsEventSerializer(serializers.ModelSerializer):
 
 class MeetingSerializer(serializers.ModelSerializer):
     """会议序列化器"""
+    # 与会者相关统计字段只读输出
     organizer = UserSerializer(read_only=True)
     attendees = UserSerializer(many=True, read_only=True)
     required_attendees = UserSerializer(many=True, read_only=True)

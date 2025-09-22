@@ -8,6 +8,7 @@ class calendarsEvent(models.Model):
     """
     日历事件模型
     """
+    # 事件/优先级字典，用于前端筛选与统计
     EVENT_TYPES = (
         ('meeting', '会议'),
         ('deadline', '截止日期'),
@@ -29,29 +30,29 @@ class calendarsEvent(models.Model):
     event_type = models.CharField(max_length=20, choices=EVENT_TYPES, verbose_name='事件类型')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal', verbose_name='优先级')
     
-    # 时间设置
+    # 时间设置：开始/结束/是否全天
     start_time = models.DateTimeField(verbose_name='开始时间')
     end_time = models.DateTimeField(verbose_name='结束时间')
     all_day = models.BooleanField(default=False, verbose_name='全天事件')
     
-    # 重复设置
+    # 重复设置：是否重复、RRULE 字符串、重复结束
     is_recurring = models.BooleanField(default=False, verbose_name='是否重复')
     recurrence_rule = models.CharField(max_length=200, blank=True, verbose_name='重复规则')
     recurrence_end = models.DateTimeField(null=True, blank=True, verbose_name='重复结束时间')
     
-    # 关联对象
+    # 关联对象：可选关联项目或任务
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True, related_name='calendars_events', verbose_name='关联项目')
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True, related_name='calendars_events', verbose_name='关联任务')
     
-    # 创建者和参与者
+    # 创建者与参与者：创建者为单个用户，参与者为多选
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events', verbose_name='创建者')
     attendees = models.ManyToManyField(User, blank=True, related_name='attending_events', verbose_name='参与者')
     
-    # 位置和提醒
+    # 位置与提醒：地点与提前提醒分钟数
     location = models.CharField(max_length=200, blank=True, verbose_name='地点')
     reminder_minutes = models.IntegerField(default=15, verbose_name='提前提醒(分钟)')
     
-    # 状态
+    # 状态与审计
     is_active = models.BooleanField(default=True, verbose_name='是否激活')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
@@ -93,6 +94,7 @@ class Meeting(models.Model):
     """
     会议模型
     """
+    # 会议类型与状态枚举
     MEETING_TYPES = (
         ('project_review', '项目评审'),
         ('team_sync', '团队同步'),
@@ -115,26 +117,26 @@ class Meeting(models.Model):
     meeting_type = models.CharField(max_length=30, choices=MEETING_TYPES, verbose_name='会议类型')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled', verbose_name='会议状态')
     
-    # 时间设置
+    # 时间设置：含时区字段，便于跨区展示
     start_time = models.DateTimeField(verbose_name='开始时间')
     end_time = models.DateTimeField(verbose_name='结束时间')
     timezone = models.CharField(max_length=50, default='Asia/Shanghai', verbose_name='时区')
     
-    # 会议信息
+    # 会议信息：地点、会议工具信息
     location = models.CharField(max_length=200, blank=True, verbose_name='会议地点')
     meeting_url = models.URLField(blank=True, verbose_name='会议链接')
     meeting_id = models.CharField(max_length=100, blank=True, verbose_name='会议ID')
     meeting_password = models.CharField(max_length=100, blank=True, verbose_name='会议密码')
     
-    # 关联对象
+    # 关联对象：可选关联项目
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True, related_name='meetings', verbose_name='关联项目')
     
-    # 组织者和参与者
+    # 组织者与参与者：普通参与者与“必要参与者”分组
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_meetings', verbose_name='组织者')
     attendees = models.ManyToManyField(User, blank=True, related_name='attending_meetings', verbose_name='参与者')
     required_attendees = models.ManyToManyField(User, blank=True, related_name='required_meetings', verbose_name='必需参与者')
     
-    # 议程和记录
+    # 议程与记录：文本与行动项 JSON
     agenda = models.TextField(blank=True, verbose_name='会议议程')
     meeting_notes = models.TextField(blank=True, verbose_name='会议记录')
     action_items = models.JSONField(default=list, verbose_name='行动项')
@@ -143,7 +145,7 @@ class Meeting(models.Model):
     reminder_minutes = models.IntegerField(default=15, verbose_name='提前提醒(分钟)')
     send_reminder = models.BooleanField(default=True, verbose_name='发送提醒')
     
-    # 附件
+    # 附件：文件元数据集合
     attachments = models.JSONField(default=list, verbose_name='会议附件')
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')

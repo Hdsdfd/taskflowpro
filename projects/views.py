@@ -11,6 +11,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
     """
     项目列表视图
     """
+    # 支持分页与基于角色的可见性过滤
     model = Project
     template_name = 'projects/project_list.html'
     context_object_name = 'projects'
@@ -32,6 +33,7 @@ def project_list_view(request):
     """
     项目列表视图（函数视图版本）
     """
+    # 与上方类视图逻辑一致，保留以便模板共用与示例
     user = request.user
     if user.profile.is_admin:
         projects = Project.objects.filter(is_active=True)
@@ -51,6 +53,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     """
     项目详情视图
     """
+    # 权限：管理员查看全部，成员仅能查看参与的
     model = Project
     template_name = 'projects/project_detail.html'
     context_object_name = 'project'
@@ -70,6 +73,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     """
     创建项目视图
     """
+    # 创建者自动成为负责人并加入成员列表
     model = Project
     form_class = ProjectForm
     template_name = 'projects/project_form.html'
@@ -86,6 +90,7 @@ class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     编辑项目视图
     """
+    # 仅管理员或负责人可编辑
     model = Project
     form_class = ProjectForm
     template_name = 'projects/project_form.html'
@@ -107,6 +112,7 @@ class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     删除项目视图
     """
+    # 软删除：仅将 is_active 置为 False
     model = Project
     template_name = 'projects/project_confirm_delete.html'
     success_url = reverse_lazy('projects:project_list')

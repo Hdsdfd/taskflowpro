@@ -8,6 +8,7 @@ class TaskTag(models.Model):
     """
     任务标签模型
     """
+    # 标签名与颜色（十六进制），用于任务标识与分类
     name = models.CharField(max_length=50, unique=True, verbose_name='标签名称')
     color = models.CharField(max_length=7, default='#007bff', verbose_name='标签颜色')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
@@ -39,6 +40,7 @@ class Task(models.Model):
         ('cancelled', '已取消'),
     )
     
+    # 基本字段
     title = models.CharField(max_length=200, verbose_name='任务标题')
     description = models.TextField(blank=True, verbose_name='任务描述')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks', verbose_name='所属项目')
@@ -51,7 +53,7 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     order = models.IntegerField(default=0, verbose_name='排序')
     
-    # 新增高级功能字段
+    # 高级字段：父子任务、工时、时间点、标签、进度、复杂度
     parent_task = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='subtasks', verbose_name='父任务')
     estimated_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='预估工时(小时)')
     actual_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='实际工时(小时)')
@@ -141,6 +143,7 @@ class TaskDependency(models.Model):
         ('start_to_finish', '开始-完成'),
     )
     
+    # A 依赖于 B：A 为 dependent_task，B 为 prerequisite_task
     dependent_task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependencies', verbose_name='依赖任务')
     prerequisite_task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependent_on', verbose_name='前置任务')
     dependency_type = models.CharField(max_length=20, choices=DEPENDENCY_TYPES, default='finish_to_start', verbose_name='依赖类型')
@@ -159,6 +162,7 @@ class TimeEntry(models.Model):
     """
     工时记录模型
     """
+    # 与任务与用户关联，记录时间段与时长
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='time_entries', verbose_name='任务')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='time_entries', verbose_name='用户')
     start_time = models.DateTimeField(verbose_name='开始时间')
@@ -176,6 +180,7 @@ class TimeEntry(models.Model):
         return f"{self.user.username} - {self.task.title}"
     
     def save(self, *args, **kwargs):
+        # 自动计算工时（小时）
         if self.start_time and self.end_time:
             duration = self.end_time - self.start_time
             self.duration_hours = duration.total_seconds() / 3600

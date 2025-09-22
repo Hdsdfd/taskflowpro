@@ -14,9 +14,13 @@ class UserProfile(models.Model):
         ('member', '普通成员'),
     )
     
+    # 与内置 User 建立一对一关系，扩展角色、头像与简介
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    # 角色字段，用于权限与界面控制
     role = models.CharField(max_length=10, choices=USER_ROLES, default='member', verbose_name='用户角色')
+    # 用户头像存储路径 avatars/
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name='头像')
+    # 个人简介
     bio = models.TextField(max_length=500, blank=True, verbose_name='个人简介')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
@@ -27,7 +31,7 @@ class UserProfile(models.Model):
         verbose_name_plural = '用户档案'
     
     def __str__(self):
-        
+        # 展示用户名与角色中文显示值
         return f"{self.user.username} - {self.get_role_display()}"
     
     # 快捷属性 判断登录用户是否为管理员
@@ -51,10 +55,13 @@ class PasswordResetCode(models.Model):
     """
     找回密码邮箱验证码
     """
+    # 关联用户，一名用户可有多条验证码记录
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_codes', verbose_name='用户')
+    # 6 位纯数字验证码
     code = models.CharField(max_length=6, verbose_name='验证码')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     expires_at = models.DateTimeField(verbose_name='过期时间')
+    # 是否已被使用，用于防止重复使用
     is_used = models.BooleanField(default=False, verbose_name='是否已使用')
 
     class Meta:
@@ -70,4 +77,5 @@ class PasswordResetCode(models.Model):
 
     @property
     def is_expired(self):
+        # 当前时间超过过期时间即视为过期
         return timezone.now() >= self.expires_at
