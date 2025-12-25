@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ notification.title }}</h1>
+<p>类型：{{ notification.get_notification_type_display }}</p>
+<p>优先级：{{ notification.get_priority_display }}</p>
+<p>内容：{{ notification.message }}</p>
+<p>创建时间：{{ notification.created_at|date:'Y-m-d H:i' }}</p>
+<p>状态：{{ notification.is_read|yesno:"已读,未读" }}</p>
+{% endblock %}

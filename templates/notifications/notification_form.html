@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>创建通知</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">提交</button>
+  <a href="{% url 'notifications:notification_list' %}" class="btn btn-secondary">返回</a>
+</form>
+{% endblock %}

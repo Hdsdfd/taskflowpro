@@ -19,6 +19,7 @@ def register_view(request):
     """
     用户注册视图
     """
+    # 处理注册逻辑：提交成功后自动登录并跳转到项目列表
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
@@ -37,10 +38,12 @@ def login_view(request):
     """
     用户登录视图
     """
+    # 已登录用户直接重定向到项目列表，避免重复登录
     if request.user.is_authenticated:
         return redirect('projects:project_list')
     
     if request.method == 'POST':
+        # Django 自带 AuthenticationForm 会做基础校验（如用户名存在与否）
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
@@ -62,6 +65,7 @@ def logout_view(request):
     """
     用户注销视图
     """
+    # 注销并提示信息，返回登录页
     logout(request)
     messages.info(request, '您已成功注销')
     return redirect('users:login')
@@ -71,6 +75,7 @@ def profile_view(request):
     """
     用户个人资料视图
     """
+    # 支持头像上传与简介编辑；表单使用 ModelForm 与 request.FILES 一起处理文件
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if form.is_valid():
@@ -89,6 +94,7 @@ def dashboard_view(request):
     """
     用户仪表板视图
     """
+    # 简要统计：项目与任务数量；注意 hasattr 防止无反向关系时报错
     user = request.user
     context = {
         'user': user,
@@ -99,6 +105,7 @@ def dashboard_view(request):
 
 @login_required
 def apply_admin_view(request):
+    # 示例逻辑：回答正确后将角色提升为 admin；实际可替换为审批流程
     if request.method == 'POST':
         form = AdminApplyForm(request.POST)
         if form.is_valid():
@@ -120,6 +127,10 @@ def forgot_password_request_view(request):
     """
     第一步：输入用户名与邮箱，发送验证码（含频率限制）
     """
+    # 合并限流策略：
+    # - 短期频率限制：两次发送间隔至少 PASSWORD_RESET_RESEND_INTERVAL_SECONDS 秒
+    # - 小时级限次：每小时最多 PASSWORD_RESET_MAX_PER_HOUR 次
+    # 发送成功后，将 user_id 与 email 存入 session，便于第二步初始化与校验
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
@@ -147,7 +158,7 @@ def forgot_password_request_view(request):
                 request.session['password_reset_email'] = email
                 return redirect('users:forgot_password')
 
-            # 生成6位数字验证码
+            # 生成 6 位数字验证码并写入数据库（带过期时间与使用标记）
             code = f"{random.randint(0, 999999):06d}"
             expires_at = timezone.now() + timezone.timedelta(minutes=settings.PASSWORD_RESET_CODE_EXPIRE_MINUTES)
             PasswordResetCode.objects.create(user=user, code=code, expires_at=expires_at)
@@ -188,6 +199,7 @@ def forgot_password_confirm_view(request):
     """
     第二步：输入验证码并设置新密码
     """
+    # 从 session 读取 user 与 email 以保证流程连续性；若缺失则引导回第一步
     user_id = request.session.get('password_reset_user_id')
     email = request.session.get('password_reset_email')
     user = None
@@ -204,7 +216,7 @@ def forgot_password_confirm_view(request):
         form = PasswordResetConfirmForm(user, request.POST)
         if form.is_valid():
             code = form.cleaned_data['code']
-            # 验证验证码
+            # 验证验证码：取用户下最新一条未使用记录并检查是否过期
             try:
                 record = PasswordResetCode.objects.filter(user=user, code=code, is_used=False).latest('created_at')
             except PasswordResetCode.DoesNotExist:

@@ -39,6 +39,7 @@ class TaskForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        # 将当前登录用户传入，用于动态限制可选项目与负责人
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
@@ -91,6 +92,7 @@ class TaskFilterForm(forms.Form):
     )
     
     def __init__(self, *args, **kwargs):
+        # 根据当前用户限制可筛选的项目与负责人
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
@@ -104,5 +106,12 @@ class TaskFilterForm(forms.Form):
                     members=user
                 )
             
-            # 设置负责人选项
-            self.fields['assignee'].queryset = user.projects.all().distinct().values_list('members', flat=True) 
+            # 设置负责人选项：必须是 User 的查询集
+            if user.profile.is_admin:
+                self.fields['assignee'].queryset = User.objects.filter(is_active=True)
+            else:
+                member_ids = Project.objects.filter(
+                    is_active=True,
+                    members=user
+                ).values_list('members', flat=True)
+                self.fields['assignee'].queryset = User.objects.filter(id__in=member_ids).distinct()

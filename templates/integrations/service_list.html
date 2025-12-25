@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>第三方服务</h1>
+<a href="{% url 'integrations:service_create' %}" class="btn btn-primary">新增服务</a>
+<table class="table">
+  <thead>
+    <tr>
+      <th>名称</th>
+      <th>类型</th>
+      <th>状态</th>
+      <th>地址</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in services %}
+    <tr>
+      <td><a href="{% url 'integrations:service_detail' s.pk %}">{{ s.name }}</a></td>
+      <td>{{ s.get_service_type_display }}</td>
+      <td>{{ s.is_active|yesno:"启用,禁用" }}</td>
+      <td>{{ s.base_url }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">暂无服务</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

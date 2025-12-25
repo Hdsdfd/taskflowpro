@@ -7,6 +7,7 @@ class UserRegistrationForm(UserCreationForm):
     """
     用户注册表单
     """
+    # 要求必须填写邮箱，用于后续通知或找回密码
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
         'class': 'form-control',
         'placeholder': '请输入邮箱'
@@ -18,6 +19,7 @@ class UserRegistrationForm(UserCreationForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # 配置各字段的前端样式与占位文案
         self.fields['username'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': '请输入用户名'
@@ -69,6 +71,7 @@ class AdminApplyForm(forms.Form):
 
 
 class PasswordResetRequestForm(forms.Form):
+    # 第一步表单：校验用户名与邮箱是否匹配
     username = forms.CharField(label='用户名', widget=forms.TextInput(attrs={
         'class': 'form-control',
         'placeholder': '请输入账号/用户名'
@@ -79,14 +82,14 @@ class PasswordResetRequestForm(forms.Form):
     }))
 
     def clean(self):
+        # 基本校验：用户名与邮箱必须同时提供，并校验两者是否匹配
         cleaned = super().clean()
         username = cleaned.get('username', '').strip()
         email = cleaned.get('email', '').strip()
         if not username or not email:
             return cleaned
         try:
-            a = User.objects.get(username)
-            print(a)
+            # 仅按用户名查找一次；移除调试用 print 与错误的查询用法
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             raise forms.ValidationError('用户名不存在')
@@ -97,6 +100,7 @@ class PasswordResetRequestForm(forms.Form):
 
 
 class PasswordResetConfirmForm(SetPasswordForm):
+    # 第二步表单：输入收到的邮箱 6 位验证码，并设置新密码
     code = forms.CharField(label='邮箱验证码', max_length=6, widget=forms.TextInput(attrs={
         'class': 'form-control',
         'placeholder': '请输入6位数字验证码'
@@ -104,6 +108,7 @@ class PasswordResetConfirmForm(SetPasswordForm):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(user, *args, **kwargs)
+        # 配置新密码字段样式
         self.fields['new_password1'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': '请输入新密码'
